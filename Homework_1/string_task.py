@@ -1,7 +1,7 @@
 def verbing(s):
     if len(s) < 3:
         return s
-    if s[len(s) - 3::] == "ing":
+    if s[-3::] == "ing":
         s += "ly"
     else:
         s += "ing"
@@ -14,7 +14,6 @@ def not_bad(s):
     a = s.find("not")
     b = s.find("bad")
     if a == -1 or b == -1:
-        print("Error, trere is no substring not or bad(or both)")
         return s
     if  a < b:
         s = s[:a] + "good" + s[b + 3:]
