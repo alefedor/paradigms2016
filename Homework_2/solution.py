@@ -2,21 +2,21 @@ import sys
 import os
 from os import walk
 from hashlib import sha1
+from collections import defaultdict
 
-dict = dict()
 
-def read_filepaths(dir):
-    for path, _, files in walk(dir):
+def read_filepaths(folder):
+    for path, _, files in walk(folder):
         for f in files:
-            if f[0] == '.' or f[0] == '~':
+            if f.startswith('.') or f.startswith('~'):
                 continue
             filepath = os.path.join(path, f)
             yield filepath
 
 
-def get_hash(file):
+def get_hash(document):
     h = sha1()
-    with open(file, "rb") as f:
+    with open(document, "rb") as f:
         while (True):
             s = f.read(1024*4)
             if not s:
@@ -25,15 +25,13 @@ def get_hash(file):
     return h.hexdigest()
 
 
-def print_equal(dir):
-    files = read_filepaths(dir)
-    global dict
-    for file in files:
-        h = get_hash(file)
-        if dict.get(h) == None:
-            dict[h] = []
-        dict[h].append(file)
-    for lst in dict.values():
+def print_equal(folder):
+    files = read_filepaths(folder)
+    d = defaultdict(list)
+    for document in files:
+        h = get_hash(document)
+        d[h].append(document)
+    for lst in d.values():
         if len(lst) > 1:
             print(':'.join(lst))
 
@@ -42,8 +40,9 @@ def main():
     if len(sys.argv) != 2:
         print("usage: ./solution.py dir")
         sys.exit(1)
-    dir = sys.argv[1]
-    print_equal(dir)
+    folder = sys.argv[1]
+    print_equal(folder)
+
 
 if __name__ == '__main__':
     main()
