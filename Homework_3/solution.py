@@ -1,19 +1,24 @@
 import numpy as np
+import sys
 
 # r: A B  s: E F  ans: J K
 #    C D     G H       L M
 
-def main():
-    n = int(input())
-    odd = False
+
+def strassen_mult(n, r, s):
+    if n == 1:
+        return s * r
+    odd = 0
     if n % 2 == 1:
-        odd = True;
-    r = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
-    for i in range(n):
-        r[i] = [int(x) for x in input().split()] + odd * [0]
-    s = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
-    for i in range(n):
-        s[i] = [int(x) for x in input().split()] + odd * [0]
+        odd = 1
+        s1 = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
+        for i in range(n):
+            s1[i] = [x for x in s[i]] + [0]
+        s = s1
+        r1 = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
+        for i in range(n):
+            r1[i] = [x for x in r[i]] + [0]
+        r = r1
     mid = (n + odd) // 2
     a = r[:mid, :mid]
     b = r[:mid, mid:]
@@ -23,13 +28,13 @@ def main():
     f = s[:mid, mid:]
     g = s[mid:, :mid]
     h = s[mid:, mid:]
-    p1 = np.dot((a + d), (e + h))
-    p2 = np.dot((c + d), e)
-    p3 = np.dot(a, (f - h))
-    p4 = np.dot(d, (g - e))
-    p5 = np.dot((a + b), h)
-    p6 = np.dot((c - a), (e + f))
-    p7 = np.dot((b - d), (g + h))
+    p1 = strassen_mult(mid, (a + d), (e + h))
+    p2 = strassen_mult(mid, (c + d), e)
+    p3 = strassen_mult(mid, a, (f - h))
+    p4 = strassen_mult(mid, d, (g - e))
+    p5 = strassen_mult(mid, (a + b), h)
+    p6 = strassen_mult(mid, (c - a), (e + f))
+    p7 = strassen_mult(mid, (b - d), (g + h))
     j = p1 + p4 - p5 + p7
     k = p3 + p5
     l = p2 + p4
@@ -39,9 +44,22 @@ def main():
         ans[i] = [j[i][p] for p in range(mid)] + [k[i][p] for p in range(mid)]
     for i in range(mid):
         ans[i + mid] = [l[i][p] for p in range(mid)] + [m[i][p] for p in range(mid)]
-    #assert ans.sum() == np.dot(q, r).sum()
-    if (odd):
+    if odd:
         ans = ans[:-1, :-1]
+    return ans
+
+
+def main():
+    n = int(input())
+    if n == 1:
+        a = int(input())
+        b = int(input())
+        print(a * b)
+        return
+    r = np.loadtxt(sys.stdin, dtype=np.int)
+    s = r[n:]
+    r = r[:n]
+    ans = strassen_mult(n, r, s)
     for i in range(n):
         print(*ans[i])
 
