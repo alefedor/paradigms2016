@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import sys
 
 # r: A B  s: E F  ans: J K
@@ -41,9 +42,7 @@ def main():
     r = np.loadtxt(sys.stdin, dtype=np.int, ndmin=2)
     s = r[n:]
     r = r[:n]
-    n2 = 1
-    while n2 < n:
-        n2 *= 2
+    n2 =  2 ** math.ceil(math.log2(n))
     r1 = np.zeros((n2, n2), dtype=np.int)
     s1 = np.zeros((n2, n2), dtype=np.int)
     r1[:n, :n] = r
