@@ -8,18 +8,7 @@ import sys
 def strassen_mult(n, r, s):
     if n == 1:
         return s * r
-    odd = 0
-    if n % 2 == 1:
-        odd = 1
-        s1 = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
-        for i in range(n):
-            s1[i] = [x for x in s[i]] + [0]
-        s = s1
-        r1 = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
-        for i in range(n):
-            r1[i] = [x for x in r[i]] + [0]
-        r = r1
-    mid = (n + odd) // 2
+    mid = n // 2
     a = r[:mid, :mid]
     b = r[:mid, mid:]
     c = r[mid:, :mid]
@@ -39,27 +28,28 @@ def strassen_mult(n, r, s):
     k = p3 + p5
     l = p2 + p4
     m = p1 - p2 + p3 + p6
-    ans = np.array([0 for i in range(n + odd)] * (n + odd)).reshape(n + odd, n + odd)
+    ans = np.zeros((n, n), dtype=np.int)
     for i in range(mid):
-        ans[i] = [j[i][p] for p in range(mid)] + [k[i][p] for p in range(mid)]
+        ans[i] = np.concatenate((j[i], k[i]))
     for i in range(mid):
-        ans[i + mid] = [l[i][p] for p in range(mid)] + [m[i][p] for p in range(mid)]
-    if odd:
-        ans = ans[:-1, :-1]
+        ans[i + mid] = np.concatenate((l[i], m[i]))
     return ans
 
 
 def main():
     n = int(input())
-    if n == 1:
-        a = int(input())
-        b = int(input())
-        print(a * b)
-        return
-    r = np.loadtxt(sys.stdin, dtype=np.int)
+    r = np.loadtxt(sys.stdin, dtype=np.int, ndmin=2)
     s = r[n:]
     r = r[:n]
-    ans = strassen_mult(n, r, s)
+    n2 = 1
+    while n2 < n:
+        n2 *= 2
+    r1 = np.zeros((n2, n2), dtype=np.int)
+    s1 = np.zeros((n2, n2), dtype=np.int)
+    r1[:n, :n] = r
+    s1[:n, :n] = s
+    ans = strassen_mult(n2, r1, s1)
+    ans = ans[:n, :n]
     for i in range(n):
         print(*ans[i])
 
