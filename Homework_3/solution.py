@@ -25,15 +25,11 @@ def strassen_mult(n, r, s):
     p5 = strassen_mult(mid, (a + b), h)
     p6 = strassen_mult(mid, (c - a), (e + f))
     p7 = strassen_mult(mid, (b - d), (g + h))
-    j = p1 + p4 - p5 + p7
-    k = p3 + p5
-    l = p2 + p4
-    m = p1 - p2 + p3 + p6
-    ans = np.zeros((n, n), dtype=np.int)
-    for i in range(mid):
-        ans[i] = np.concatenate((j[i], k[i]))
-    for i in range(mid):
-        ans[i + mid] = np.concatenate((l[i], m[i]))
+    ans = np.empty((n, n), dtype=np.int)
+    ans[:mid, :mid] = p1 + p4 - p5 + p7
+    ans[:mid, mid:] = p3 + p5
+    ans[mid:, :mid] = p2 + p4
+    ans[mid:, mid:] = p1 - p2 + p3 + p6
     return ans
 
 
