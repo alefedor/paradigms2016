@@ -1,12 +1,12 @@
 class Scope(object):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         self.dict = dict()
         self.parent = parent
 
     def __getitem__(self, item):
         if item in self.dict:
             return self.dict[item]
-        if self.parent != None:
+        if self.parent:
             return self.parent[item]
         else:
             raise Exception
@@ -16,9 +16,6 @@ class Scope(object):
 
 
 class Number(int):
-    def __init__(self, value):
-        self = value
-
     def evaluate(self, scope):
         return self
 
@@ -39,9 +36,9 @@ class UnaryOperation:
     def evaluate(self, scope):
         a = self.expr.evaluate(scope)
         if self.op == "-":
-            return -a
+            return Number(-a)
         else:
-            return 0 if a != 0 else 1
+            return Number(a==0)
 
 
 class BinaryOperation:
@@ -54,15 +51,15 @@ class BinaryOperation:
         l = self.lhs.evaluate(scope)
         r = self.rhs.evaluate(scope)
         if self.op == "+":
-            return l + r
+            return Number(l + r)
         elif self.op == "-":
-            return l - r
+            return Number(l - r)
         elif self.op == "*":
-            return l * r
+            return Number(l * r)
         elif self.op == "/":
-            return l // r
+            return Number(l // r)
         elif self.op == "%":
-            return l % r
+            return Number(l % r)
         elif self.op == "==":
             return Number(l == r)
         elif self.op == "!=":
@@ -84,11 +81,12 @@ class BinaryOperation:
 class Function:
     def __init__(self, args, body):
         self.body = body
+        self.args = args
 
     def evaluate(self, scope):
         last = Number(0)
         for x in self.body:
-            last = x.evaluate(scope) #?todo?
+            last = x.evaluate(scope)
         return last
 
 
@@ -98,7 +96,7 @@ class FunctionDefinition:
         self.func = function
 
     def evaluate(self, scope):
-        scope[self.name] = self.func #???
+        scope[self.name] = self.func
         return self.func
 
 
@@ -108,10 +106,11 @@ class FunctionCall:
         self.fun_expr = fun_expr
 
     def evaluate(self, scope):
-        func = self.fun_expr
+        func = self.fun_expr.evaluate(scope)
         call_scope = Scope(scope)
-        for x in self.args:
-            call_scope[x] = scope[x].evaluate()
+        results = [x.evaluate(scope) for x in self.args]
+        for i, x in enumerate(func.args):
+            call_scope[x] = results[i]
         return func.evaluate(call_scope)
 
 
@@ -149,20 +148,40 @@ class Read:
     def evaluate(self, scope):
         a = int(input())
         scope[self.name] = a
-        return a
+        return Number(a)
 
 
 def main():
-    #Simple tests
+    #Example
     parent = Scope()
     parent["bar"] = Number(10)
     scope = Scope(parent)
-    print(scope["bar"])
+    parent["foo"] = Function(('hello', 'world'),
+                             [Print(BinaryOperation(Reference('hello'), '+', Reference('world')))])
+    assert type(FunctionCall(FunctionDefinition('foo', parent['foo']),
+                 [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)) == Number
+    assert scope["bar"] == 10
     scope["bar"] = Number(20)
-    print(scope["bar"])
-    f = FunctionCall(Number(1), [])
-    add = BinaryOperation(f, "+", Number(2))
-    print(add.evaluate(Scope))
+    assert scope["bar"] == 20
+    assert type(scope["bar"]) == Number
+    #Test: Function sqr and Function a*a+b*b==c*c
+    sc = Scope()
+    #Read("a").evaluate(sc)
+    #Read("b").evaluate(sc)
+    #Read("c").evaluate(sc)
+    sc["sqr"] = Function(["a"], [BinaryOperation(Reference("a"), "*", Reference("a"))])
+    ref = FunctionDefinition("sqr", sc["sqr"])
+    sc["foo"] = Function(['a', 'b', 'c'],
+                        [BinaryOperation(BinaryOperation(FunctionCall(ref, [Reference("a")]), "+", FunctionCall(ref, [Reference("b")])),
+                                        "==",
+                                        FunctionCall(ref, [Reference("c")]))])
+    a = Number(3)
+    b = Number(4)
+    c = Number(5)
+    assert Print(FunctionCall(FunctionDefinition("calc", sc["foo"]), [a, b, c]).evaluate(sc)).evaluate(sc) ==  (a*a+b*b==c*c)
+    c = Number(6)
+    assert Print(FunctionCall(FunctionDefinition("calc", sc["foo"]), [a, b, c]).evaluate(sc)).evaluate(sc) ==  (a*a+b*b==c*c)
+
 
 if __name__ == '__main__':
     main()
