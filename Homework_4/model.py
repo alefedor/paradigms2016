@@ -35,11 +35,12 @@ class Reference:
 
 
 class UnaryOperation:
+    ops = {"-": operator.neg,
+            "!":operator.not_}
+
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
-        self.ops = {"-": operator.neg,
-                    "!":operator.not_}
 
     def evaluate(self, scope):
         a = self.expr.evaluate(scope).value
@@ -47,23 +48,24 @@ class UnaryOperation:
 
 
 class BinaryOperation:
+    ops = {"+": operator.add,
+            "-":operator.sub,
+            "*":operator.mul,
+            "/":operator.floordiv,
+            "%":operator.mod,
+            "==":operator.is_,
+            "!=":operator.is_not,
+            "<":operator.lt,
+            ">":operator.gt,
+            "<=":operator.le,
+            ">=":operator.ge,
+            "&&":lambda x, y: bool(x and y),
+            "||":lambda x, y: bool(x or y)}
+
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
         self.rhs = rhs
         self.op = op
-        self.ops = {"+": operator.add,
-                    "-":operator.sub,
-                    "*":operator.mul,
-                    "/":operator.floordiv,
-                    "%":operator.mod,
-                    "==":operator.is_,
-                    "!=":operator.is_not,
-                    "<":operator.lt,
-                    ">":operator.gt,
-                    "<=":operator.le,
-                    ">=":operator.ge,
-                    "&&":lambda x, y: bool(x and y),
-                    "||":lambda x, y: bool(x or y)}
 
     def evaluate(self, scope):
         l = self.lhs.evaluate(scope).value
