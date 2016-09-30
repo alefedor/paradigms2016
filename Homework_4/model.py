@@ -1,3 +1,6 @@
+import operator
+
+
 class Scope(object):
     def __init__(self, parent=None):
         self.dict = dict()
@@ -15,7 +18,10 @@ class Scope(object):
         self.dict[key] = value
 
 
-class Number(int):
+class Number:
+    def __init__(self, value):
+        self.value = int(value)
+
     def evaluate(self, scope):
         return self
 
@@ -32,13 +38,12 @@ class UnaryOperation:
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
+        self.ops = {"-": operator.neg,
+                    "!":operator.not_}
 
     def evaluate(self, scope):
-        a = self.expr.evaluate(scope)
-        if self.op == "-":
-            return Number(-a)
-        else:
-            return Number(a==0)
+        a = self.expr.evaluate(scope).value
+        return Number(self.ops[self.op](a))
 
 
 class BinaryOperation:
@@ -46,36 +51,24 @@ class BinaryOperation:
         self.lhs = lhs
         self.rhs = rhs
         self.op = op
+        self.ops = {"+": operator.add,
+                    "-":operator.sub,
+                    "*":operator.mul,
+                    "/":operator.floordiv,
+                    "%":operator.mod,
+                    "==":operator.is_,
+                    "!=":operator.is_not,
+                    "<":operator.lt,
+                    ">":operator.gt,
+                    "<=":operator.le,
+                    ">=":operator.ge,
+                    "&&":lambda x, y: bool(x and y),
+                    "||":lambda x, y: bool(x or y)}
 
     def evaluate(self, scope):
-        l = self.lhs.evaluate(scope)
-        r = self.rhs.evaluate(scope)
-        if self.op == "+":
-            return Number(l + r)
-        elif self.op == "-":
-            return Number(l - r)
-        elif self.op == "*":
-            return Number(l * r)
-        elif self.op == "/":
-            return Number(l // r)
-        elif self.op == "%":
-            return Number(l % r)
-        elif self.op == "==":
-            return Number(l == r)
-        elif self.op == "!=":
-            return Number(l != r)
-        elif self.op == "<":
-            return Number(l < r)
-        elif self.op == ">":
-            return Number(l > r)
-        elif self.op == "<=":
-            return Number(l <= r)
-        elif self.op == ">=":
-            return Number(l >= r)
-        elif self.op == "&&":
-            return Number(l and r)
-        else:
-            return Number(l or r)
+        l = self.lhs.evaluate(scope).value
+        r = self.rhs.evaluate(scope).value
+        return Number(self.ops[self.op](l, r))
 
 
 class Function:
@@ -137,7 +130,7 @@ class Print:
 
     def evaluate(self, scope):
         a = self.expr.evaluate(scope)
-        print(a)
+        print(a.value)
         return a
 
 
@@ -160,10 +153,11 @@ def main():
                              [Print(BinaryOperation(Reference('hello'), '+', Reference('world')))])
     assert type(FunctionCall(FunctionDefinition('foo', parent['foo']),
                  [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)) == Number
-    assert scope["bar"] == 10
+    assert scope["bar"].value == 10
     scope["bar"] = Number(20)
-    assert scope["bar"] == 20
+    assert scope["bar"].value == 20
     assert type(scope["bar"]) == Number
+
     #Test: Function sqr and Function a*a+b*b==c*c
     sc = Scope()
     #Read("a").evaluate(sc)
@@ -178,10 +172,15 @@ def main():
     a = Number(3)
     b = Number(4)
     c = Number(5)
-    assert Print(FunctionCall(FunctionDefinition("calc", sc["foo"]), [a, b, c]).evaluate(sc)).evaluate(sc) ==  (a*a+b*b==c*c)
+    assert Print(FunctionCall(FunctionDefinition("calc", sc["foo"]), [a, b, c]).evaluate(sc)).evaluate(sc).value == 1
     c = Number(6)
-    assert Print(FunctionCall(FunctionDefinition("calc", sc["foo"]), [a, b, c]).evaluate(sc)).evaluate(sc) ==  (a*a+b*b==c*c)
+    assert Print(FunctionCall(FunctionDefinition("calc", sc["foo"]), [a, b, c]).evaluate(sc)).evaluate(sc).value == 0
 
+    assert BinaryOperation(Number(5), "&&", Number(0)).evaluate(scope).value == 0
+    assert BinaryOperation(Number(5), "&&", Number(-2)).evaluate(scope).value == 1
+    assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
+    assert UnaryOperation("!", Number(0)).evaluate(scope).value == 1
+    assert UnaryOperation("-", Number(5)).evaluate(scope).value == -5
 
 if __name__ == '__main__':
     main()
