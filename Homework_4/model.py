@@ -142,7 +142,7 @@ class Read:
 
     def evaluate(self, scope):
         a = int(input())
-        scope[self.name] = a
+        scope[self.name] = Number(a)
         return Number(a)
 
 
@@ -162,7 +162,9 @@ def main():
 
     #Test: Function sqr and Function a*a+b*b==c*c
     sc = Scope()
-    #Read("a").evaluate(sc)
+    assert type(Read("a").evaluate(sc)) == Number
+    assert type(sc["a"]) == Number
+    assert type(Print(Reference("a")).evaluate(sc)) == Number
     #Read("b").evaluate(sc)
     #Read("c").evaluate(sc)
     sc["sqr"] = Function(["a"], [BinaryOperation(Reference("a"), "*", Reference("a"))])
