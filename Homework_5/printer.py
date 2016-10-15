@@ -1,4 +1,4 @@
-from model import *
+from yat.model import *
 
 
 def brackets(func):
@@ -44,15 +44,21 @@ class PrettyPrinter:
         print(" " + binop.op + " ", end='')
         self.visit(binop.rhs, False)
 
-    def visitFunction(self, func):
-        print("(", end='')
+    def walkArray(self, args, is_call=False):
         first = True
-        for arg in func.args:
+        for arg in args:
             if first:
                 first = False
             else:
                 print(", ", end='')
-            print(arg, end='')
+            if is_call:
+                self.visit(arg, False)
+            else:
+                print(arg, end='')
+
+    def visitFunction(self, func):
+        print("(", end='')
+        self.walkArray(func.args)
         print(") {")
         self.level += 1
         for expr in func.body:
@@ -66,13 +72,7 @@ class PrettyPrinter:
 
     def visitFunctionCall(self, funcall):
         print(funcall.fun_expr.name + "(", end='')
-        first = True
-        for arg in funcall.args:
-            if first:
-                first = False
-            else:
-                print(", ", end='')
-            self.visit(arg, False)
+        self.walkArray(funcall.args, True)
         print(")", end = "")
 
     def visitConditional(self, cond):
@@ -83,11 +83,12 @@ class PrettyPrinter:
         for expr in cond.if_true:
             self.visit(expr)
         self.level -= 1
-        print("    " * self.level + "} else {")
-        self.level += 1
-        for expr in cond.if_false:
-            self.visit(expr)
-        self.level -= 1
+        if not cond.if_false is None:
+            print("    " * self.level + "} else {")
+            self.level += 1
+            for expr in cond.if_false:
+                self.visit(expr)
+            self.level -= 1
         print("    " * self.level + "}", end='')
 
     def visitPrint(self, p):
@@ -102,7 +103,7 @@ def test():
     #Example
     printer = PrettyPrinter()
     number = Number(42)
-    conditional = Conditional(number, [], [])
+    conditional = Conditional(number, [], None)
     printer.visit(conditional)
     function = Function([], [])
     definition = FunctionDefinition("foo", function)

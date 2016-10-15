@@ -1,5 +1,5 @@
-from model import *
-from printer import *
+from yat.model import *
+from yat.printer import *
 
 
 class ConstantFolder:
@@ -59,8 +59,9 @@ class ConstantFolder:
         cond.condition = self.visit(cond.condition)
         for i in range(len(cond.if_true)):
             cond.if_true[i] = self.visit(cond.if_true[i])
-        for i in range(len(cond.if_false)):
-            cond.if_false[i] = self.visit(cond.if_false[i])
+        if not cond.if_false is None:
+            for i in range(len(cond.if_false)):
+                cond.if_false[i] = self.visit(cond.if_false[i])
         return cond
 
     def visitPrint(self, p):
