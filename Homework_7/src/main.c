@@ -45,9 +45,9 @@ int main(int argc, char **argv){
         a[i] = rand();
     struct ThreadPool pool;
     pool.tasks.head = NULL;
-    struct Task *t = new_task(0, n - 1, a, 0, mx, sort_arr);
-    thpool_submit(&pool, t);
     thpool_init(&pool, num);
+    struct Task *t = new_task(0, n - 1, a, 0, mx, sort_arr, &pool);
+    thpool_submit(&pool, t);
     wait_sort(&pool, t);
     free_sort(t);
     thpool_finit(&pool);

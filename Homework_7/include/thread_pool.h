@@ -3,11 +3,12 @@
 #include <stdbool.h>
 
 struct Task {
-    void (*f)(void *); // функция, которую требуется выполнить
-    void* arg; // данные, передаваемые функции в качестве параметра
-    pthread_cond_t cond; //cond for done
-    pthread_mutex_t mutex; //mutex for done
+    void (*f)(void *);
+    void* arg;
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
     bool done;
+    struct ThreadPool* pool;
     struct Task *l, *r;
 };
 
@@ -23,27 +24,24 @@ struct Node{
     struct Task *t;
 };
 
-struct ThreadNode{
-    struct ThreadNode *next;
-    pthread_t t;
-};
-
 struct List{
     struct Node *head;
 };
 
 struct ThreadPool {
     struct List tasks;
-    struct ThreadNode *head;
     unsigned int num;
-    //<как-то хранящиеся потоки>
-    //<как-то хранящиеся таски>
-	//<любые поля на усмотрение студента>
+    bool deleted;
+    pthread_mutex_t mw; //mutex for int working
+    pthread_cond_t done; //condition working == 0
+    volatile unsigned int working; //number of working threads
+    pthread_mutex_t list_lock; //mutex for list
+    pthread_cond_t list_cond; //cond for informing of new elements in list
 };
 
 void thpool_init(struct ThreadPool* pool, unsigned int threads_nm);
 void thpool_submit(struct ThreadPool* pool, struct Task* task);
 void thpool_wait(struct Task* task);
 void thpool_finit(struct ThreadPool* pool);
-struct Task* new_task(int l, int r, int *a, int depth, int mx, void (*f)(void *));
+struct Task* new_task(int l, int r, int *a, int depth, int mx, void (*f)(void *), struct ThreadPool *pool);
 void sort_arr(void *arg);
