@@ -32,7 +32,6 @@ struct ThreadPool {
     struct List tasks;
     unsigned int num;
     bool deleted;
-    pthread_mutex_t mw; //mutex for int working
     pthread_cond_t done; //condition working == 0
     volatile unsigned int working; //number of working threads
     pthread_mutex_t list_lock; //mutex for list

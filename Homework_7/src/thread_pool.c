@@ -48,7 +48,7 @@ void sort_arr(void *arg){
     if (l >= r)
         return;
     int *a = q -> a;
-    int x = a[l + rand() % (r - l + 1)];
+    int x = a[l];
     int i = l, j = r, tmp;
     while (i <= j){
         while (a[i] < x) i++;
@@ -82,41 +82,32 @@ static void delete_node(struct List *l){
     l -> head = v;
 }
 
-static void safe_inc(struct ThreadPool *pool){
-    pthread_mutex_lock(&pool -> mw);
-    pool -> working++;
-    pthread_mutex_unlock(&pool -> mw);
-}
-
-static void safe_dec(struct ThreadPool *pool){
-    pthread_mutex_lock(&pool -> mw);
-    pool -> working--;
-    if (!pool -> working)
-        pthread_cond_signal(&pool -> done);
-    pthread_mutex_unlock(&pool -> mw);
-}
-
 static void* worker(void* arg){
     //fprintf(stderr, "%d\n", pthread_self());
     struct ThreadPool *pool = (struct ThreadPool*)arg;
     if (pool -> deleted)
         pthread_exit(0); //Sorry, thread, you are late
     pthread_mutex_lock(&pool -> list_lock);
-    safe_inc(pool);
+    ++pool -> working;
     while (true){
         if (!pool -> tasks.head){
-            safe_dec(pool);
+            --pool -> working;
+            if (!pool -> working)
+                pthread_cond_signal(&pool -> done);
             while (!pool -> tasks.head)
                 pthread_cond_wait(&pool -> list_cond, &pool -> list_lock);
-            safe_inc(pool);
+            ++pool -> working;
         }
         struct Task *t = pool -> tasks.head -> t;
         delete_node(&pool -> tasks);
-        pthread_mutex_unlock(&pool -> list_lock);
         if (t == NULL){
-            safe_dec(pool);
+            --pool -> working;
+            if (!pool -> working)
+                pthread_cond_signal(&pool -> done);
+            pthread_mutex_unlock(&pool -> list_lock);
             pthread_exit(0);
         }
+        pthread_mutex_unlock(&pool -> list_lock);
         t -> f((void*)t -> arg);
         make_done(t);
         pthread_mutex_lock(&pool -> list_lock);
@@ -129,23 +120,20 @@ void thpool_init(struct ThreadPool* pool, unsigned int threads_nm){
     pool -> deleted = false;
     pthread_mutex_init(&pool -> list_lock, NULL);
     pthread_cond_init(&pool -> done, NULL);
-    pthread_mutex_init(&pool -> mw, NULL);
     pthread_cond_init(&pool -> list_cond, NULL);
     for (unsigned int i = 0; i < threads_nm; i++){
         pthread_t t;
         pthread_create(&t, NULL, worker, (void*)pool);
+        pthread_detach(t);
     }
 }
 
 static void wait_empty(struct ThreadPool* pool){
-    pthread_mutex_lock(&pool -> mw);
-    while (true){
-        if (pool -> working != 0)
-            pthread_cond_wait(&pool -> done, &pool -> mw);
-        else
-            break;
+    pthread_mutex_lock(&pool -> list_lock);
+    while (pool -> working != 0){
+        pthread_cond_wait(&pool -> done, &pool -> list_lock);
     }
-    pthread_mutex_unlock(&pool -> mw);
+    pthread_mutex_unlock(&pool -> list_lock);
 
 }
 
@@ -157,7 +145,6 @@ void thpool_finit(struct ThreadPool* pool){
 
     pool -> deleted = true;
     pthread_mutex_destroy(&pool -> list_lock);
-    pthread_mutex_destroy(&pool -> mw);
     pthread_cond_destroy(&pool -> list_cond);
     pthread_cond_destroy(&pool -> done);
 }
