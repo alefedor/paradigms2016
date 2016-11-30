@@ -10,5 +10,7 @@ python:
 install:
   - cd Homework_11
   - pip install pytest
+  - pip3 install pytest
+
 script:
   - py.test model.py
