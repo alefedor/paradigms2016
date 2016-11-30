@@ -11,5 +11,6 @@ install:
   - pip install coveralls
 script:
   - py.test model.py
-  - coveralls model.py
+  - coverage run model.py
+  - coveralls 
   
