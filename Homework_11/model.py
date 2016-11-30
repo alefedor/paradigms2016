@@ -190,10 +190,10 @@ def test_cond():
 	assert(cond.evaluate(scope) == None)
 	b = scope['b']
 
-def test_read():
-	scope = Scope()
-	r = Read('a')
-	r.evaluate(scope)
+#def test_read():
+#	scope = Scope()
+#	r = Read('a')
+#	r.evaluate(scope)
 
 if __name__ == '__main__':
     test()
