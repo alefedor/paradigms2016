@@ -5,12 +5,8 @@ language:
 python:
   - "2.6"
   - "2.7"
-  - "3.3"
-  - "3.4"
 install:
   - cd Homework_11
   - pip install pytest
-  - pip3 install pytest
-
 script:
   - py.test model.py
