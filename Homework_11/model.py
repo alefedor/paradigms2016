@@ -188,16 +188,16 @@ def test_cond():
 	assert(cond.evaluate(scope).value != 3)
 	cond = Conditional(Number(1), None, None)
 	assert(cond.evaluate(scope) == None)
+	b = scope['b']
 
 def test_read():
 	scope = Scope()
 	r = Read('a')
 	r.evaluate(scope)
-	b = scope['b']
 
 if __name__ == '__main__':
     test()
     test_operations()
     test_print()
     test_cond()
-    test_read()
+    #test_read()
