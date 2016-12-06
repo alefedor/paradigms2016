@@ -8,5 +8,9 @@ python:
 install:
   - cd Homework_11
   - pip install pytest
+  - pip install coveralls
 script:
   - py.test model.py
+  - coverage run model.py
+  - coveralls 
+  
