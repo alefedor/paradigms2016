@@ -52,8 +52,8 @@ class BinaryOperation:
             "*":operator.mul,
             "/":operator.floordiv,
             "%":operator.mod,
-            "==":operator.is_,
-            "!=":operator.is_not,
+            "==":operator.eq,
+            "!=":operator.ne,
             "<":operator.lt,
             ">":operator.gt,
             "<=":operator.le,
@@ -168,27 +168,27 @@ def test():
     assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
 
 def test_operations():
-	scope = Scope()
-	assert BinaryOperation(Number(5), "+", Number(-1)).evaluate(scope).value == 4
-	assert BinaryOperation(Number(5), "&&", Number(0)).evaluate(scope).value == 0
-   	assert BinaryOperation(Number(5), "&&", Number(-2)).evaluate(scope).value == 1
-    	assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
+    scope = Scope()
+    assert BinaryOperation(Number(5), "+", Number(-1)).evaluate(scope).value == 4
+    assert BinaryOperation(Number(5), "&&", Number(0)).evaluate(scope).value == 0
+    assert BinaryOperation(Number(5), "&&", Number(-2)).evaluate(scope).value == 1
+    assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
 
 def test_print():
-	scope = Scope()
-	scope['foo'] = Number(3)
-	ref = Reference('foo')
-	assert (Print(Number(3)).evaluate(scope).value == Print(ref.evaluate(scope)).evaluate(scope).value)
+    scope = Scope()
+    scope['foo'] = Number(3)
+    ref = Reference('foo')
+    assert (Print(Number(3)).evaluate(scope).value == Print(ref.evaluate(scope)).evaluate(scope).value)
 
 def test_cond():
-	scope = Scope()
-	cond = Conditional(Number(1), [Number(3)])
-	assert(cond.evaluate(scope).value == 3)
-	cond = Conditional(Number(0), [Number(3)], [Number(2)])
-	assert(cond.evaluate(scope).value != 3)
-	cond = Conditional(Number(1), None, None)
-	assert(cond.evaluate(scope) == None)
-	b = scope['b']
+    scope = Scope()
+    cond = Conditional(Number(1), [Number(3)])
+    assert(cond.evaluate(scope).value == 3)
+    cond = Conditional(Number(0), [Number(3)], [Number(2)])
+    assert(cond.evaluate(scope).value != 3)
+    cond = Conditional(Number(1), None, None)
+    assert(cond.evaluate(scope) == None)
+    b = scope['b']
 
 #def test_read():
 #	scope = Scope()
