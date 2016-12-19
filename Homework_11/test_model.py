@@ -84,7 +84,7 @@ class TestUnaryOperation:
     def test_operations(self):
         for op, func in self.ops.items():
             for i in range(-3, 4):
-                assert_equal(int(func(i)), UnaryOperation(op, Number(i)))
+                assert_equal(func(i), UnaryOperation(op, Number(i)))
 
 
 class TestBinaryOperation:
@@ -107,7 +107,7 @@ class TestBinaryOperation:
             for i in range(-3, 4):
                 for j in range(-3, 4):
                     if j != 0 or (op != '/' and op != '%'):
-                        assert_equal(int(func(i, j)), BinaryOperation(Number(i), op, Number(j)))
+                        assert_equal(func(i, j), BinaryOperation(Number(i), op, Number(j)))
 
 
 class TestFunction:
