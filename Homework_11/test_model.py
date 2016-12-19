@@ -16,6 +16,12 @@ def assert_equal(a, b):
         Print(b).evaluate(sc)
         assert mock_out.getvalue() == str(a)+"\n"
 
+def assert_not_equal(a, b):
+    sc = Scope()
+    with patch("sys.stdout", new_callable=StringIO) as mock_out:
+        Print(b).evaluate(sc)
+        assert mock_out.getvalue() != str(a)+"\n"
+
 
 class TestScope:
     def test_basic(self, scope):
@@ -84,7 +90,13 @@ class TestUnaryOperation:
     def test_operations(self):
         for op, func in self.ops.items():
             for i in range(-3, 4):
-                assert_equal(func(i), UnaryOperation(op, Number(i)))
+                if (op == '!'):
+                    if (func(i)):
+                        assert_not_equal(0, UnaryOperation(op, Number(i)))
+                    else:
+                        assert_equal(0, UnaryOperation(op, Number(i)))
+                else:
+                    assert_equal(int(func(i)), UnaryOperation(op, Number(i)))
 
 
 class TestBinaryOperation:
@@ -102,12 +114,20 @@ class TestBinaryOperation:
            '&&': lambda x,y: 1 if x != 0 and y != 0 else 0,
            '||': lambda x,y: 1 if x != 0 or y != 0 else 0}
 
+    logic = {'==', '<', '>', '!=', '<=', '>=', '&&', '||'}
+
     def test_operations(self):
         for op, func in self.ops.items():
             for i in range(-3, 4):
                 for j in range(-3, 4):
                     if j != 0 or (op != '/' and op != '%'):
-                        assert_equal(func(i, j), BinaryOperation(Number(i), op, Number(j)))
+                        if (op in self.logic):
+                            if (func(i, j)):
+                                assert_not_equal(0, BinaryOperation(Number(i), op, Number(j)))
+                            else:
+                                assert_equal(0, BinaryOperation(Number(i), op, Number(j)))
+                        else:
+                            assert_equal(int(func(i, j)), BinaryOperation(Number(i), op, Number(j)))
 
 
 class TestFunction:

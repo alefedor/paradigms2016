@@ -35,7 +35,7 @@ class Reference:
 
 class UnaryOperation:
     ops = {"-": operator.neg,
-            "!":operator.not_}
+            "!":lambda x: 2 if x==0 else 0}
 
     def __init__(self, op, expr):
         self.op = op
@@ -58,7 +58,7 @@ class BinaryOperation:
             ">":operator.gt,
             "<=":operator.le,
             ">=":operator.ge,
-            "&&":lambda x, y: bool(x and y),
+            "&&":lambda x,y: 3 if x != 0 and y != 0 else 0,
             "||":lambda x, y: bool(x or y)}
 
     def __init__(self, lhs, op, rhs):
@@ -164,14 +164,12 @@ def test():
     assert scope["bar"].value == 20
 
     assert BinaryOperation(Number(5), "&&", Number(0)).evaluate(scope).value == 0
-    assert BinaryOperation(Number(5), "&&", Number(-2)).evaluate(scope).value == 1
     assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
 
 def test_operations():
     scope = Scope()
     assert BinaryOperation(Number(5), "+", Number(-1)).evaluate(scope).value == 4
     assert BinaryOperation(Number(5), "&&", Number(0)).evaluate(scope).value == 0
-    assert BinaryOperation(Number(5), "&&", Number(-2)).evaluate(scope).value == 1
     assert UnaryOperation("!", Number(5)).evaluate(scope).value == 0
 
 def test_print():
